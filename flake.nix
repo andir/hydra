@@ -125,10 +125,6 @@
           shellHook = ''
             PATH=$(pwd)/src/hydra-evaluator:$(pwd)/src/script:$(pwd)/src/hydra-eval-jobs:$(pwd)/src/hydra-queue-runner:$PATH
             PERL5LIB=$(pwd)/src/lib:$PERL5LIB
-            export HYDRA_HOME="src/"
-            mkdir -p .hydra-data
-            export HYDRA_DATA="$(pwd)/.hydra-data"
-            #export HYDRA_DBI='dbi:Pg:dbname=hydra;host=10.242.1.2;user=hydra;'
           '';
 
           preConfigure = "autoreconf -vfi";
@@ -298,7 +294,7 @@
         nixpkgs.overlays = [ self.overlay nix.overlay ];
       };
 
-      devShell = pkgs.callPackage ./hydra-dev.nix {};
+      runHydra = pkgs.callPackage ./run-hydra.nix {};
 
       nixosModules.hydraTest = {
         imports = [ self.nixosModules.hydra ];
