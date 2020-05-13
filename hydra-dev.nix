@@ -13,12 +13,7 @@
     export HYDRA_HOME="src/"
     mkdir -p .hydra-data
     export HYDRA_DATA="$(pwd)/.hydra-data"
-    export HYDRA_DBI='dbi:Pg:dbname=hydra;host=10.242.1.2;user=hydra;'
-
-    echo bar
-    configurePhase
-    echo foo
-    make
+    export HYDRA_DBI='dbi:Pg:dbname=hydra;host=localhost;'
   '';
 
 }))
