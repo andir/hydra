@@ -35,14 +35,57 @@
       # A Nixpkgs overlay that provides a 'hydra' package.
       overlay = final: prev: {
 
-        hydra = with final; let
+        # Add LDAP dependencies that aren't currently found within nixpkgs.
+        perlPackages = prev.perlPackages // {
+          NetLDAPServer = prev.perlPackages.buildPerlPackage {
+            pname = "Net-LDAP-Server";
+            version = "0.43";
+            src = final.fetchurl {
+              url = "mirror://cpan/authors/id/A/AA/AAR/Net-LDAP-Server-0.43.tar.gz";
+              sha256 = "0qmh3cri3fpccmwz6bhwp78yskrb3qmalzvqn0a23hqbsfs4qv6x";
+            };
+            propagatedBuildInputs = with final.perlPackages; [ NetLDAP ConvertASN1 ];
+          };
 
+          NetLDAPSID = prev.perlPackages.buildPerlPackage {
+            pname = "Net-LDAP-SID";
+            version = "0.0001";
+            src = final.fetchurl {
+              url = "mirror://cpan/authors/id/K/KA/KARMAN/Net-LDAP-SID-0.001.tar.gz";
+              sha256 = "1mnnpkmj8kpb7qw50sm8h4sd8py37ssy2xi5hhxzr5whcx0cvhm8";
+            };
+          };
+
+          NetLDAPServerTest = prev.perlPackages.buildPerlPackage {
+            pname = "Net-LDAP-Server-Test";
+            version = "0.22";
+            src = final.fetchurl {
+              url = "mirror://cpan/authors/id/K/KA/KARMAN/Net-LDAP-Server-Test-0.22.tar.gz";
+              sha256 = "13idip7jky92v4adw60jn2gcc3zf339gsdqlnc9nnvqzbxxp285i";
+            };
+            propagatedBuildInputs = with final.perlPackages; [ NetLDAP NetLDAPServer TestMore DataDump NetLDAPSID ];
+          };
+
+          CatalystAuthenticationStoreLDAP = prev.perlPackages.buildPerlPackage {
+            pname = "Catalyst-Authentication-Store-LDAP";
+            version = "1.016";
+            src = final.fetchurl {
+              url = "mirror://cpan/authors/id/I/IL/ILMARI/Catalyst-Authentication-Store-LDAP-1.016.tar.gz";
+              sha256 = "0cm399vxqqf05cjgs1j5v3sk4qc6nmws5nfhf52qvpbwc4m82mq8";
+            };
+            propagatedBuildInputs = with final.perlPackages; [ NetLDAP CatalystPluginAuthentication ClassAccessorFast ];
+            buildInputs = with final.perlPackages; [ TestMore TestMockObject TestException NetLDAPServerTest ];
+          };
+        };
+
+        hydra = with final; let
           perlDeps = buildEnv {
             name = "hydra-perl-deps";
             paths = with perlPackages; lib.closePropagation
               [ ModulePluggable
                 CatalystActionREST
                 CatalystAuthenticationStoreDBIxClass
+                CatalystAuthenticationStoreLDAP
                 CatalystDevel
                 CatalystDispatchTypeRegex
                 CatalystPluginAccessLog
@@ -89,49 +132,6 @@
                 TextTable
                 XMLSimple
                 YAML
-                (buildPerlPackage {
-                  pname = "Catalyst-Authentication-Store-LDAP";
-                  version = "1.016";
-                  src = fetchurl {
-                    url = "mirror://cpan/authors/id/I/IL/ILMARI/Catalyst-Authentication-Store-LDAP-1.016.tar.gz";
-                    sha256 = "0cm399vxqqf05cjgs1j5v3sk4qc6nmws5nfhf52qvpbwc4m82mq8";
-                  };
-                  propagatedBuildInputs = [ NetLDAP CatalystPluginAuthentication ClassAccessorFast ];
-                  buildInputs = let
-                    NetLDAPServerTest = buildPerlPackage {
-                      pname = "Net-LDAP-Server-Test";
-                      version = "0.22";
-                      src = fetchurl {
-                        url = "mirror://cpan/authors/id/K/KA/KARMAN/Net-LDAP-Server-Test-0.22.tar.gz";
-                        sha256 = "13idip7jky92v4adw60jn2gcc3zf339gsdqlnc9nnvqzbxxp285i";
-                      };
-                      propagatedBuildInputs = let
-
-                        NetLDAPSID = buildPerlPackage {
-                          pname = "Net-LDAP-SID";
-                          version = "0.0001";
-                          src = fetchurl {
-                            url = "mirror://cpan/authors/id/K/KA/KARMAN/Net-LDAP-SID-0.001.tar.gz";
-                            sha256 = "1mnnpkmj8kpb7qw50sm8h4sd8py37ssy2xi5hhxzr5whcx0cvhm8";
-                          };
-                        };
-
-                        NetLDAPServer = buildPerlPackage {
-                          pname = "Net-LDAP-Server";
-                          version = "0.43";
-                          src = fetchurl {
-                            url = "mirror://cpan/authors/id/A/AA/AAR/Net-LDAP-Server-0.43.tar.gz";
-                            sha256 = "0qmh3cri3fpccmwz6bhwp78yskrb3qmalzvqn0a23hqbsfs4qv6x";
-                          };
-                          propagatedBuildInputs = [
-                            NetLDAP ConvertASN1
-                          ];
-                        };
-                      in [ NetLDAP NetLDAPServer TestMore DataDump NetLDAPSID ];
-                      buildInputs = [ ];
-                    };
-                  in [ TestMore TestMockObject TestException NetLDAPServerTest ];
-                })
                 final.nix
                 final.nix.perl-bindings
                 git
