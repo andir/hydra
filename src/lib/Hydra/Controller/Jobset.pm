@@ -364,5 +364,27 @@ sub latest_eval : Chained('jobsetChain') PathPart('latest-eval') {
     $c->res->redirect($c->uri_for($c->controller('JobsetEval')->action_for("view"), [$eval->id], @args, $c->req->params));
 }
 
+sub cancel_non_current : Chained('jobsetChain') PathPart Args(0) {
+    my ($self, $c, @args) = @_;
+
+    #requireCancelBuildPrivileges($c, $c->stash->{project});
+    my $jobset = $c->stash->{jobset};
+
+
+    my $builds = $jobset->search(
+        { id => { -in => \ qq{
+	  SELECT id FROM Builds where id IN
+	    ((SELECT id FROM Builds WHERE finished = 0 AND jobset_id = ?)
+	      EXCEPT (
+	        SELECT build FROM JobsetEvalMembers WHERE eval IN (
+  	          SELECT max(id) FROM JobsetEvals WHERE hasNewBuilds = 1 AND jobset_id = ?)))"
+    }, $jobset->id, $jobset->id }});
+    # FIXME: how do I provide the variables for jobset_id here?!?
+    my $n = cancelBuilds($c->model('DB')->schema, $builds);
+    $c->flash->{successMsg} = "$n builds have been cancelled.";
+    $c->res->redirect($c->request->referer // "/");
+}
+
+
 
 1;

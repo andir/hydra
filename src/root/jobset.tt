@@ -56,6 +56,7 @@
         [% INCLUDE menuItem title="Clone this jobset" uri=c.uri_for(c.controller('Jobset').action_for('edit'), c.req.captures, { cloneJobset => 1 }) %]
         [% END %]
         [% INCLUDE menuItem title="Evaluate this jobset" uri="javascript:confirmEvaluateJobset()" %]
+	[% INCLUDE menuItem title="Cancel non-current builds" uri=c.uri_for(c.controller('Jobset').action-for('cancel_non_current'), c.req.captures) %]
       </div>
     </li>
   [% END %]
