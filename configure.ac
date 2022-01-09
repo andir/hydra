@@ -43,12 +43,16 @@ then
     NIX_STATE_DIR="$TMPDIR"
     export NIX_STATE_DIR
 fi
-if NIX_REMOTE=daemon PAGER=cat "$NIX_STORE_PROGRAM" --timeout 123 -q; then 
+if NIX_REMOTE=daemon PAGER=cat "$NIX_STORE_PROGRAM" --timeout 123 -q; then
     AC_MSG_RESULT([yes])
 else
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([`$NIX_STORE_PROGRAM' doesn't support `--timeout'; please use a newer version.])
 fi
+
+# check for gtest
+PKG_CHECK_MODULES([GTEST], [gtest_main])
+
 
 PKG_CHECK_MODULES([NIX], [nix-main nix-expr nix-store])
 
